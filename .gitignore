@@ -1,0 +1,27 @@
+# Build artifacts
+*.o
+*.bin
+*.elf
+*.iso
+*.img
+
+# QEMU disk images
+devos.img
+devos.iso
+
+# Cross compiler output
+*.map
+
+# Editor files
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+serial.log
+
+# Build directories
+build/
