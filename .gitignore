@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 build/
 *.o
 *.bin
@@ -6,3 +7,32 @@ build/
 *.iso
 *.log
 .vscode/
+=======
+# Build artifacts
+*.o
+*.bin
+*.elf
+*.iso
+*.img
+
+# QEMU disk images
+devos.img
+devos.iso
+
+# Cross compiler output
+*.map
+
+# Editor files
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+serial.log
+
+# Build directories
+build/
+>>>>>>> 951157e0d6ba02d533ed20e137d531c2c019a00f
