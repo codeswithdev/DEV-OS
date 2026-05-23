@@ -1,0 +1,46 @@
+name: Build DevOS
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            nasm \
+            gcc-x86-64-linux-gnu \
+            binutils-x86-64-linux-gnu \
+            qemu-system-x86 \
+            xorriso
+
+      - name: Build DevOS
+        run: make
+
+      - name: Check kernel size
+        run: make size
+
+      - name: Boot test (QEMU serial, 5 second timeout)
+        run: |
+          timeout 5 qemu-system-x86_64 \
+            -drive format=raw,file=devos.img,index=0,media=disk \
+            -m 512M -cpu qemu64 -serial stdio \
+            -display none -no-reboot -no-shutdown 2>&1 | tee boot.log || true
+          grep -q "Kernel online" boot.log && echo "BOOT OK" || (echo "BOOT FAILED" && cat boot.log && exit 1)
+
+      - name: Upload disk image
+        uses: actions/upload-artifact@v4
+        with:
+          name: devos-img
+          path: devos.img
+          retention-days: 7

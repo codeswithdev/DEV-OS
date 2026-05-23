@@ -1,0 +1,12 @@
+In kernel/mm/vmm.c, change line:
+  static pml4_t kernel_pml4 = NULL;
+to:
+  pml4_t kernel_pml4 = NULL;   /* exported for vmm_ext.c */
+
+And change:
+  static uint64_t *kernel_pdpt = NULL;
+to:
+  static uint64_t *kernel_pdpt = NULL;  /* (unchanged) */
+
+This is the only required change to vmm.c.
+vmm_ext.c then uses: extern uint64_t *kernel_pml4;
