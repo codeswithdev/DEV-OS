@@ -15,7 +15,10 @@
 #include "../proc/proc.h"
 #include "../lib/string.h"
 #include "../lib/printf.h"
+<<<<<<< HEAD
 #include "../arch/x86_64/timer.h"
+=======
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 
 #define SHELL_LINE_MAX 256
 #define SHELL_ARGS_MAX 16
@@ -98,8 +101,11 @@ static void cmd_help(void)
     shell_print("  cat <path> — print file contents\n");
     shell_print("  echo <...> — print arguments\n");
     shell_print("  uptime     — ticks since boot\n");
+<<<<<<< HEAD
     shell_print("  halt       — halt the system\n");
     shell_print("  reboot     — reboot the system\n");
+=======
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 }
 
 static void cmd_clear(void)
@@ -124,13 +130,24 @@ static void cmd_heapinfo(void)
 
 static void cmd_ps(void)
 {
+<<<<<<< HEAD
     shell_print("PID  STATE    PRIO  NAME\n");
     shell_print("---  -------  ----  ----\n");
+=======
+    extern task_t *current_task;
+
+    shell_print("PID  STATE    NAME\n");
+
+    /* Walk run queue */
+    task_t *t = current_task;
+    if (!t) return;
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 
     static const char *state_names[] = {
         "CREATED", "READY  ", "RUNNING", "BLOCKED", "ZOMBIE ", "DEAD   "
     };
 
+<<<<<<< HEAD
     char buf[80];
 
     /* Print current running task */
@@ -172,6 +189,15 @@ static void cmd_ps(void)
             shell_print(buf);
         }
     }
+=======
+    /* Print current task */
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%-4u %s  %s\n",
+             t->pid,
+             state_names[t->state < 6 ? t->state : 5],
+             t->name);
+    shell_print(buf);
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 }
 
 static void cmd_ls(const char *path)
@@ -230,6 +256,7 @@ static void cmd_echo(char **argv, int argc)
 
 static void cmd_uptime(void)
 {
+<<<<<<< HEAD
     char buf[64];
     uint64_t ticks = timer_ticks();
     snprintf(buf, sizeof(buf), "Uptime: %llu ms (%llu sec)\n",
@@ -258,6 +285,16 @@ static void cmd_reboot(void)
     for(;;) __asm__ __volatile__("hlt");
 }
 
+=======
+    extern uint64_t timer_ticks(void);
+    char buf[64];
+    uint64_t ticks = timer_ticks();
+    snprintf(buf, sizeof(buf), "Uptime: %llu ticks (%llu ms)\n",
+             ticks, ticks);
+    shell_print(buf);
+}
+
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 /* ---- Main shell loop ---- */
 
 void shell_run(void)
@@ -288,8 +325,11 @@ void shell_run(void)
         else if (strcmp(cmd, "cat")    == 0) cmd_cat(argc > 1 ? argv[1] : NULL);
         else if (strcmp(cmd, "echo")   == 0) cmd_echo(argv, argc);
         else if (strcmp(cmd, "uptime") == 0) cmd_uptime();
+<<<<<<< HEAD
         else if (strcmp(cmd, "halt")   == 0) cmd_halt();
         else if (strcmp(cmd, "reboot") == 0) cmd_reboot();
+=======
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
         else {
             shell_print(cmd);
             shell_print(": command not found\n");

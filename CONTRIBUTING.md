@@ -1,5 +1,6 @@
 # Contributing to DevOS
 
+<<<<<<< HEAD
 DevOS is India's first from-scratch x86_64 OS. We welcome contributors who want to get their hands dirty with real kernel engineering.
 
 ## Current Status (v0.4)
@@ -81,3 +82,18 @@ gdb build/kernel.elf -ex "target remote :1234"
 ## Questions?
 
 Open an issue or start a discussion on GitHub. Low-level OS development is hard — asking questions is encouraged.
+=======
+🚧 Phase 1 (Bootloader Development) is currently in progress.
+
+External contributions are temporarily closed until the project reaches:
+- bootloader stability
+- protected mode transition
+- kernel initialization
+
+Interested contributors can:
+- star the repository
+- watch releases
+- follow project updates
+
+Future contribution guidelines will be published with DevOS v0.1.
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616

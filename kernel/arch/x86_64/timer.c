@@ -48,6 +48,7 @@ uint64_t timer_ticks(void)
 
 void timer_sleep_ms(uint32_t ms)
 {
+<<<<<<< HEAD
     if (ms == 0) return;
     uint64_t wake_at = tick_count + (uint64_t)ms;
     /* Use scheduler block so other tasks can run while we sleep.
@@ -60,5 +61,10 @@ void timer_sleep_ms(uint32_t ms)
         /* Pre-scheduler fallback: busy wait */
         while (tick_count < wake_at)
             __asm__ __volatile__("pause");
+=======
+    uint64_t target = tick_count + ms;
+    while (tick_count < target) {
+        __asm__ __volatile__("pause");
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
     }
 }

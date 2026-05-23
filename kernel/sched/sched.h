@@ -96,7 +96,10 @@ void     sched_check_sleepers(uint64_t tick);
 void     sched_exit(void) NORETURN;
 
 extern void sched_switch(task_t *from, task_t *to);
+<<<<<<< HEAD
 
 /* Returns head of run queue for inspection (e.g. ps command) */
 task_t  *sched_get_run_queue_head(void);
 int      sched_get_sleep_list(task_t **out, int max);
+=======
+>>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
