@@ -8,6 +8,7 @@
 #include "../drivers/keyboard.h"
 #include "../drivers/vga.h"
 #include "../arch/x86_64/serial.h"
+#include "../arch/x86_64/timer.h"
 #include "../mm/pmm.h"
 #include "../mm/heap.h"
 #include "../fs/vfs.h"
@@ -15,10 +16,6 @@
 #include "../proc/proc.h"
 #include "../lib/string.h"
 #include "../lib/printf.h"
-<<<<<<< HEAD
-#include "../arch/x86_64/timer.h"
-=======
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 
 #define SHELL_LINE_MAX 256
 #define SHELL_ARGS_MAX 16
@@ -55,7 +52,6 @@ static void shell_readline(void)
         if (c == '\b') {
             if (line_len > 0) {
                 line_len--;
-                /* Erase last character on VGA */
                 vga_putchar('\b');
                 vga_putchar(' ');
                 vga_putchar('\b');
@@ -92,20 +88,22 @@ static int shell_parse(char *argv[], int max_args)
 static void cmd_help(void)
 {
     shell_print("Commands:\n");
-    shell_print("  help       — this message\n");
-    shell_print("  clear      — clear screen\n");
-    shell_print("  meminfo    — physical memory stats\n");
-    shell_print("  heapinfo   — kernel heap stats\n");
-    shell_print("  ps         — list tasks\n");
-    shell_print("  ls [path]  — list directory\n");
-    shell_print("  cat <path> — print file contents\n");
-    shell_print("  echo <...> — print arguments\n");
-    shell_print("  uptime     — ticks since boot\n");
-<<<<<<< HEAD
-    shell_print("  halt       — halt the system\n");
-    shell_print("  reboot     — reboot the system\n");
-=======
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
+    shell_print("  help         this message\n");
+    shell_print("  clear        clear screen\n");
+    shell_print("  meminfo      physical memory stats\n");
+    shell_print("  heapinfo     kernel heap stats\n");
+    shell_print("  ps           list tasks\n");
+    shell_print("  ls [path]    list directory\n");
+    shell_print("  cat <path>   print file contents\n");
+    shell_print("  echo <...>   print arguments\n");
+    shell_print("  uptime       milliseconds since boot\n");
+    shell_print("  rtc          show current RTC date/time\n");
+    shell_print("  lspci        list PCI devices\n");
+    shell_print("  diskinfo     list block devices\n");
+    shell_print("  netinfo      list network devices\n");
+    shell_print("  devinfo      hardware summary\n");
+    shell_print("  halt         halt the system\n");
+    shell_print("  reboot       reboot the system\n");
 }
 
 static void cmd_clear(void)
@@ -130,47 +128,38 @@ static void cmd_heapinfo(void)
 
 static void cmd_ps(void)
 {
-<<<<<<< HEAD
-    shell_print("PID  STATE    PRIO  NAME\n");
-    shell_print("---  -------  ----  ----\n");
-=======
-    extern task_t *current_task;
-
-    shell_print("PID  STATE    NAME\n");
-
-    /* Walk run queue */
-    task_t *t = current_task;
-    if (!t) return;
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
+    shell_print("PID  STATE    PRIO  TICKS  NAME\n");
+    shell_print("---  -------  ----  -----  ----\n");
 
     static const char *state_names[] = {
         "CREATED", "READY  ", "RUNNING", "BLOCKED", "ZOMBIE ", "DEAD   "
     };
 
-<<<<<<< HEAD
-    char buf[80];
+    char buf[96];
 
     /* Print current running task */
     task_t *cur = current_task;
     if (cur) {
-        snprintf(buf, sizeof(buf), "%-4u %s  %-4u  %s  <running>\n",
+        snprintf(buf, sizeof(buf), "%-4u %s  %-4u  %-5llu  %s  <running>\n",
                  cur->pid,
                  state_names[cur->state < 6 ? cur->state : 5],
                  cur->priority,
+                 cur->total_ticks,
                  cur->name);
         shell_print(buf);
     }
 
-    /* Walk the run queue (circular doubly-linked list) */
+    /* Walk the run queue */
     task_t *head = sched_get_run_queue_head();
     if (head) {
         task_t *t = head;
         do {
             if (t != cur) {
-                snprintf(buf, sizeof(buf), "%-4u %s  %-4u  %s\n",
+                snprintf(buf, sizeof(buf), "%-4u %s  %-4u  %-5llu  %s\n",
                          t->pid,
                          state_names[t->state < 6 ? t->state : 5],
                          t->priority,
+                         t->total_ticks,
                          t->name);
                 shell_print(buf);
             }
@@ -182,22 +171,13 @@ static void cmd_ps(void)
     task_t *sleeping[32];
     int ns = sched_get_sleep_list(sleeping, 32);
     for (int i = 0; i < ns; i++) {
-        task_t *t = sleeping[i];
-        if (t) {
-            snprintf(buf, sizeof(buf), "%-4u BLOCKED  %-4u  %s  (sleep)\n",
-                     t->pid, t->priority, t->name);
+        task_t *s = sleeping[i];
+        if (s) {
+            snprintf(buf, sizeof(buf), "%-4u BLOCKED  %-4u  %-5llu  %s  (sleep)\n",
+                     s->pid, s->priority, s->total_ticks, s->name);
             shell_print(buf);
         }
     }
-=======
-    /* Print current task */
-    char buf[64];
-    snprintf(buf, sizeof(buf), "%-4u %s  %s\n",
-             t->pid,
-             state_names[t->state < 6 ? t->state : 5],
-             t->name);
-    shell_print(buf);
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
 }
 
 static void cmd_ls(const char *path)
@@ -205,14 +185,8 @@ static void cmd_ls(const char *path)
     if (!path || !*path) path = "/";
 
     vfs_node_t *dir = vfs_lookup(path);
-    if (!dir) {
-        shell_print("ls: not found\n");
-        return;
-    }
-    if (!(dir->flags & VFS_TYPE_DIR)) {
-        shell_print("ls: not a directory\n");
-        return;
-    }
+    if (!dir) { shell_print("ls: not found\n"); return; }
+    if (!(dir->flags & VFS_TYPE_DIR)) { shell_print("ls: not a directory\n"); return; }
 
     char name[VFS_NAME_MAX + 1];
     for (uint32_t i = 0; ; i++) {
@@ -225,16 +199,10 @@ static void cmd_ls(const char *path)
 
 static void cmd_cat(const char *path)
 {
-    if (!path || !*path) {
-        shell_print("cat: path required\n");
-        return;
-    }
+    if (!path || !*path) { shell_print("cat: path required\n"); return; }
 
     int fd = vfs_open(path, 0, 0);
-    if (fd < 0) {
-        shell_print("cat: cannot open file\n");
-        return;
-    }
+    if (fd < 0) { shell_print("cat: cannot open file\n"); return; }
 
     char buf[256];
     ssize_t n;
@@ -256,7 +224,6 @@ static void cmd_echo(char **argv, int argc)
 
 static void cmd_uptime(void)
 {
-<<<<<<< HEAD
     char buf[64];
     uint64_t ticks = timer_ticks();
     snprintf(buf, sizeof(buf), "Uptime: %llu ms (%llu sec)\n",
@@ -282,26 +249,52 @@ static void cmd_reboot(void)
         "   outb %%al, $0x64\n"
         ::: "eax", "memory"
     );
-    for(;;) __asm__ __volatile__("hlt");
+    for (;;) __asm__ __volatile__("hlt");
 }
 
-=======
-    extern uint64_t timer_ticks(void);
-    char buf[64];
-    uint64_t ticks = timer_ticks();
-    snprintf(buf, sizeof(buf), "Uptime: %llu ticks (%llu ms)\n",
-             ticks, ticks);
-    shell_print(buf);
+/* ---- Placeholder commands (filled in by driver modules) ---- */
+
+static void cmd_rtc(void)
+{
+    /* Implemented in kernel/drivers/rtc.c; forward-declared here */
+    extern void rtc_print_time(void);
+    rtc_print_time();
 }
 
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
+static void cmd_lspci(void)
+{
+    extern void pci_print_devices(void);
+    pci_print_devices();
+}
+
+static void cmd_diskinfo(void)
+{
+    extern void blkdev_print_all(void);
+    blkdev_print_all();
+}
+
+static void cmd_netinfo(void)
+{
+    extern void netdev_print_all(void);
+    netdev_print_all();
+}
+
+static void cmd_devinfo(void)
+{
+    shell_print("=== DEV-OS Hardware Summary ===\n");
+    cmd_meminfo();
+    cmd_lspci();
+    cmd_diskinfo();
+    cmd_netinfo();
+}
+
 /* ---- Main shell loop ---- */
 
 void shell_run(void)
 {
     shell_print("\n");
     vga_set_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
-    shell_print("DevOS Shell — type 'help' for commands\n");
+    shell_print("DevOS Shell v0.5 -- type 'help' for commands\n");
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 
     char *argv[SHELL_ARGS_MAX];
@@ -316,20 +309,22 @@ void shell_run(void)
 
         const char *cmd = argv[0];
 
-        if      (strcmp(cmd, "help")   == 0) cmd_help();
-        else if (strcmp(cmd, "clear")  == 0) cmd_clear();
-        else if (strcmp(cmd, "meminfo")== 0) cmd_meminfo();
-        else if (strcmp(cmd, "heapinfo")==0) cmd_heapinfo();
-        else if (strcmp(cmd, "ps")     == 0) cmd_ps();
-        else if (strcmp(cmd, "ls")     == 0) cmd_ls(argc > 1 ? argv[1] : NULL);
-        else if (strcmp(cmd, "cat")    == 0) cmd_cat(argc > 1 ? argv[1] : NULL);
-        else if (strcmp(cmd, "echo")   == 0) cmd_echo(argv, argc);
-        else if (strcmp(cmd, "uptime") == 0) cmd_uptime();
-<<<<<<< HEAD
-        else if (strcmp(cmd, "halt")   == 0) cmd_halt();
-        else if (strcmp(cmd, "reboot") == 0) cmd_reboot();
-=======
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
+        if      (strcmp(cmd, "help")    == 0) cmd_help();
+        else if (strcmp(cmd, "clear")   == 0) cmd_clear();
+        else if (strcmp(cmd, "meminfo") == 0) cmd_meminfo();
+        else if (strcmp(cmd, "heapinfo")== 0) cmd_heapinfo();
+        else if (strcmp(cmd, "ps")      == 0) cmd_ps();
+        else if (strcmp(cmd, "ls")      == 0) cmd_ls(argc > 1 ? argv[1] : NULL);
+        else if (strcmp(cmd, "cat")     == 0) cmd_cat(argc > 1 ? argv[1] : NULL);
+        else if (strcmp(cmd, "echo")    == 0) cmd_echo(argv, argc);
+        else if (strcmp(cmd, "uptime")  == 0) cmd_uptime();
+        else if (strcmp(cmd, "rtc")     == 0) cmd_rtc();
+        else if (strcmp(cmd, "lspci")   == 0) cmd_lspci();
+        else if (strcmp(cmd, "diskinfo")== 0) cmd_diskinfo();
+        else if (strcmp(cmd, "netinfo") == 0) cmd_netinfo();
+        else if (strcmp(cmd, "devinfo") == 0) cmd_devinfo();
+        else if (strcmp(cmd, "halt")    == 0) cmd_halt();
+        else if (strcmp(cmd, "reboot")  == 0) cmd_reboot();
         else {
             shell_print(cmd);
             shell_print(": command not found\n");

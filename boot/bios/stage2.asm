@@ -147,14 +147,10 @@ load_kernel_1mb:
     pop     ecx
 
     ; Advance
-    push    eax
-    pop     edx
-    add     ebx, edx
-    shl     edx, 9
-    add     edi, edx
-    sub     ecx, [esp]          ; BUG: stack corrupt; fix:
-    pop     edx                 ; get back original eax
-    sub     ecx, edx
+    add     ebx, eax
+    sub     ecx, eax
+    shl     eax, 9
+    add     edi, eax
     jmp     .loop
 
 .done:

@@ -18,6 +18,16 @@
 #include "fs/vfs.h"
 #include "proc/proc.h"
 #include "shell/shell.h"
+#include "acpi/acpi.h"
+#include "drivers/console.h"
+#include "drivers/rtc.h"
+#include "drivers/pci/pci.h"
+#include "drivers/storage/ata.h"
+#include "drivers/storage/ahci.h"
+#include "drivers/storage/nvme.h"
+#include "drivers/net/rtl8139.h"
+#include "drivers/audio/hda.h"
+#include "drivers/mouse.h"
 
 extern uint64_t _kernel_phys_end;
 
@@ -57,7 +67,7 @@ void kmain(boot_info_t *bi)
     vga_set_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK);
     vga_puts("DevOS");
     vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-    vga_puts(" v0.4 — Booting...\n");
+    vga_puts(" v0.5 — Booting...\n");
 
     gdt_init();    serial_puts("[GDT]    OK\n");
     idt_init();    serial_puts("[IDT]    OK\n");
@@ -79,8 +89,19 @@ void kmain(boot_info_t *bi)
     cpu_enable_interrupts();
     serial_puts("[INIT] Interrupts enabled\n");
 
+    console_init();
+    rtc_init();
+    acpi_init();
+    pci_init();
+    ata_init();
+    ahci_init();
+    nvme_init();
+    rtl8139_init();
+    hda_init();
+    mouse_init();
+
     vga_set_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
-    vga_puts("[OK] Kernel online — DevOS v0.4\n");
+    vga_puts("[OK] Kernel online — DevOS v0.5\n");
     vga_set_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 
     /* Load embedded userspace ELF if present */

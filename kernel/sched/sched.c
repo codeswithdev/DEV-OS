@@ -343,7 +343,6 @@ void sched_exit(void)
     __asm__ __volatile__("ud2");
     __builtin_unreachable();
 }
-<<<<<<< HEAD
 
 task_t *sched_get_run_queue_head(void)
 {
@@ -356,5 +355,4 @@ int sched_get_sleep_list(task_t **out, int max)
     for (int i = 0; i < n; i++) out[i] = sleep_list[i];
     return n;
 }
-=======
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
+

@@ -1,26 +1,19 @@
-<<<<<<< HEAD
+# Build artifacts
 build/
 *.o
 *.bin
 *.elf
-*.img
-*.iso
-*.log
-.vscode/
-=======
-# Build artifacts
-*.o
-*.bin
-*.elf
 *.iso
 *.img
+*.map
 
 # QEMU disk images
 devos.img
 devos.iso
 
-# Cross compiler output
-*.map
+# Logs
+*.log
+serial.log
 
 # Editor files
 .vscode/
@@ -28,11 +21,3 @@ devos.iso
 *~
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-serial.log
-
-# Build directories
-build/
->>>>>>> 951157e0d6ba02d533ed20e137d531c2c019a00f

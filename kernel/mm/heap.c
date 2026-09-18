@@ -29,13 +29,6 @@
 
 #define LARGE_THRESHOLD     2048
 #define HEAP_MAGIC_FREE     0xDEADC0DEDEADC0DEULL
-<<<<<<< HEAD
-=======
-#define HEAP_MAGIC_ALLOC    0xALLOCALLOCALLOCULL  /* intentionally invalid literal */
->>>>>>> 86b48d9e005102ecf781f5f192fd54d487851616
-
-/* Redefine as valid hex */
-#undef HEAP_MAGIC_ALLOC
 #define HEAP_MAGIC_ALLOC    0xA110CA11A110CA11ULL
 
 /* ============================================================
