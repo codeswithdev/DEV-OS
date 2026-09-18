@@ -131,6 +131,9 @@ $(BUILD):
 run: $(IMG)
 	$(QEMU) $(QEMU_BASE)
 
+run-gui: $(IMG)
+	$(QEMU) -drive format=raw,file=$(IMG),index=0,media=disk -m 512M -cpu qemu64 -serial stdio
+
 debug: $(IMG) $(KERNEL_ELF)
 	$(QEMU) $(QEMU_BASE) -s -S -d int,cpu_reset,guest_errors -D $(BUILD)/qemu.log &
 	sleep 0.5
